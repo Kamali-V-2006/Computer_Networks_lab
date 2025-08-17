@@ -1,0 +1,77 @@
+package cn_lab_exercise;
+import java.io.*;
+import java.net.*;
+
+class Client {
+    public static void main(String[] args) {
+        try {
+            DatagramSocket client = new DatagramSocket();
+            InetAddress addr = InetAddress.getByName("127.0.0.1");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Enter the IP address or Domain name: ");
+            String input = in.readLine();
+
+            byte[] sendbyte = input.getBytes();
+            DatagramPacket sender = new DatagramPacket(sendbyte, sendbyte.length, addr, 1309);
+            client.send(sender);
+
+            byte[] receivebyte = new byte[1024];
+            DatagramPacket receiver = new DatagramPacket(receivebyte, receivebyte.length);
+            client.receive(receiver);
+
+            String response = new String(receiver.getData(), 0, receiver.getLength()).trim();
+            System.out.println("Response from server: " + response);
+
+            client.close();
+        } catch (Exception e) {
+            System.out.println("Client error: " + e.getMessage());
+        }
+    }
+}
+package cn_lab_exercise;
+import java.io.*;
+import java.net.*;
+
+class Server {
+    public static void main(String[] args) {
+        try {
+            DatagramSocket server = new DatagramSocket(1309);
+            System.out.println("Server started. Waiting for client...");
+
+            while (true) {
+                byte[] receivebyte = new byte[1024];
+                DatagramPacket receiver = new DatagramPacket(receivebyte, receivebyte.length);
+                server.receive(receiver);
+
+                String received = new String(receiver.getData(), 0, receiver.getLength()).trim();
+                System.out.println("Received from client: " + received);
+
+                InetAddress addr = receiver.getAddress();
+                int port = receiver.getPort();
+
+                String[] ip = {"165.165.80.80", "165.165.79.1"};
+                String[] name = {"www.aptitudeguru.com", "www.downloadcyclone.blogspot.com"};
+
+                String response = "Not found";
+
+                for (int i = 0; i < ip.length; i++) {
+                    if (received.equals(ip[i])) {
+                        response = name[i];
+                        break;
+                    } else if (received.equals(name[i])) {
+                        response = ip[i];
+                        break;
+                    }
+                }
+
+                byte[] sendbyte = response.getBytes();
+                DatagramPacket sender = new DatagramPacket(sendbyte, sendbyte.length, addr, port);
+                server.send(sender);
+                System.out.println("Response sent: " + response);
+            }
+        } catch (Exception e) {
+            System.out.println("Server error: " + e.getMessage());
+        }
+    }
+}
