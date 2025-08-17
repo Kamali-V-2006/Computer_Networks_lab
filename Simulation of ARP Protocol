@@ -1,0 +1,84 @@
+package cn_lab_exercise;
+import java.io.*;
+import java.net.*;
+
+class Server6A {
+    public static void main(String args[]) {
+        try {
+            ServerSocket obj = new ServerSocket(3636);
+            System.out.println("Server is running and waiting for client request...");
+            Socket obj1 = obj.accept();
+            System.out.println("Client connected.");
+
+            BufferedReader din = new BufferedReader(new InputStreamReader(obj1.getInputStream()));
+            DataOutputStream dout = new DataOutputStream(obj1.getOutputStream());
+
+            String[] ip = { "165.165.80.80", "165.165.79.1" };
+            String[] mac = { "6A:08:AA:C2", "8A:BC:E3:FA" };
+
+            while (true) {
+                String str = din.readLine(); // receive IP from client
+                if (str == null || str.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                boolean found = false;
+                for (int i = 0; i < ip.length; i++) {
+                    if (str.equals(ip[i])) {
+                        dout.writeBytes(mac[i] + "\n"); // send MAC address
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    dout.writeBytes("MAC address not found\n");
+                }
+            }
+
+            din.close();
+            dout.close();
+            obj1.close();
+            obj.close();
+            System.out.println("Server stopped.");
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+}
+package cn_lab_exercise;
+import java.io.*;
+import java.net.*;
+class Client6A {
+    public static void main(String args[]) {
+        try {
+            Socket obj = new Socket("localhost", 3636);
+            BufferedReader din = new BufferedReader(new InputStreamReader(System.in));
+            DataOutputStream dout = new DataOutputStream(obj.getOutputStream());
+            BufferedReader din1 = new BufferedReader(new InputStreamReader(obj.getInputStream()));
+
+            String ip;
+            while (true) {
+                System.out.print("Enter IP Address (or type 'exit' to quit): ");
+                ip = din.readLine();
+                dout.writeBytes(ip + "\n");
+
+                if (ip.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                String mac = din1.readLine();
+                System.out.println("MAC Address: " + mac);
+            }
+
+            din.close();
+            dout.close();
+            din1.close();
+            obj.close();
+
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+}
